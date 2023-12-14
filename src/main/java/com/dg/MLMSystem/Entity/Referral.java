@@ -1,6 +1,5 @@
 package com.dg.MLMSystem.Entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 import java.io.Serializable;
@@ -11,39 +10,37 @@ public class Referral implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
     @ManyToOne
-    @JsonBackReference
-    private User referrer; // The user who referred someone
+    private UserInfo referrer; // The user who referred someone
 
     @ManyToOne
-    @JsonBackReference
-    private User referred; // The user who was referred
+    private UserInfo referred; // The user who was referred
 
     private int level; // Referral level
 
-    public Long getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
-    public User getReferrer() {
+    public UserInfo getReferrer() {
         return referrer;
     }
 
-    public void setReferrer(User referrer) {
+    public void setReferrer(UserInfo referrer) {
         this.referrer = referrer;
     }
 
-    public User getReferred() {
+    public UserInfo getReferred() {
         return referred;
     }
 
-    public void setReferred(User referred) {
+    public void setReferred(UserInfo referred) {
         this.referred = referred;
     }
 
@@ -53,15 +50,5 @@ public class Referral implements Serializable {
 
     public void setLevel(int level) {
         this.level = level;
-    }
-
-    @Override
-    public String toString() {
-        return "Referral{" +
-                "id=" + id +
-                ", referrer=" + referrer +
-                ", referred=" + referred +
-                ", level=" + level +
-                '}';
     }
 }

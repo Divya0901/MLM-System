@@ -1,62 +1,67 @@
 package com.dg.MLMSystem.Service;
 
+import com.dg.MLMSystem.Entity.Commission;
 import com.dg.MLMSystem.Entity.Referral;
-import com.dg.MLMSystem.Entity.User;
+import com.dg.MLMSystem.Entity.UserInfo;
+import com.dg.MLMSystem.Repository.CommissionRepository;
 import com.dg.MLMSystem.Repository.ReferralRepository;
-import com.dg.MLMSystem.Repository.UserRepository;
+import com.dg.MLMSystem.Repository.UserInfoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.ObjectUtils;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
 public class CommissionService {
 
     @Autowired
-    private UserRepository userRepository;
+    private UserInfoRepository userInfoRepository;
 
     @Autowired
     private ReferralRepository referralRepository;
 
+    @Autowired
+    private CommissionRepository commissionRepository;
+
     private static final int FIXED_REFERRAL_COMMISSION = 100;
 
     public void calculateCommissions() {
-        List<User> users = userRepository.findAll();
+        List<UserInfo> userInfos = userInfoRepository.findAll();
 
-        for (User user : users) {
-            BigDecimal totalCommission = calculateTotalCommission(user);
-            user.setCommissionAmount(totalCommission);
-            userRepository.save(user);
+        for (UserInfo userInfo : userInfos) {
+            Commission totalCommission = calculateTotalCommission(userInfo);
+            commissionRepository.save(totalCommission);
         }
     }
 
-    public void updateCommission(User referrer, Referral referral) {
+    public void updateCommission(UserInfo referrer, Referral referral) {
         int level = referral.getLevel();
         BigDecimal commissionRate = getCommissionRate(level);
         BigDecimal referralCommission = calculateReferralCommission(commissionRate);
 
 //        referrer.getCommissions().set(level - 1, referrer.getCommissions().get(level - 1).add(referralCommission));
-        userRepository.save(referrer);
+        userInfoRepository.save(referrer);
     }
 
-    private BigDecimal calculateTotalCommission(User user) {
+    private Commission calculateTotalCommission(UserInfo userInfo) {
+        Commission commission = null;
         BigDecimal totalCommission = BigDecimal.ZERO;
 
-        List<Referral> referrals = referralRepository.findByReferrer(user);
+        List<Referral> referrals = referralRepository.findByReferrer(userInfo);
 
         for (Referral referral : referrals) {
             int level = referral.getLevel();
             BigDecimal commissionRate = getCommissionRate(level);
-            BigDecimal referralCommission = user.getCommissionAmount().add(calculateReferralCommission(commissionRate));
+            commission = commissionRepository.findByUserInfo(userInfo);
+            BigDecimal referralCommission = commission.getAmount().add(calculateReferralCommission(commissionRate));
             totalCommission = totalCommission.add(referralCommission);
         }
 
-        return totalCommission;
+        commission.setAmount(totalCommission);
+        return commission;
     }
+
 
     private BigDecimal getCommissionRate(int level) {
         // Adjust commission rates based on your business rules

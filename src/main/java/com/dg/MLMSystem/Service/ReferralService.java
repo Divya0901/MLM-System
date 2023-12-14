@@ -1,9 +1,9 @@
 package com.dg.MLMSystem.Service;
 
 import com.dg.MLMSystem.Entity.Referral;
-import com.dg.MLMSystem.Entity.User;
+import com.dg.MLMSystem.Entity.UserInfo;
 import com.dg.MLMSystem.Repository.ReferralRepository;
-import com.dg.MLMSystem.Repository.UserRepository;
+import com.dg.MLMSystem.Repository.UserInfoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 public class ReferralService {
 
     @Autowired
-    private UserRepository userRepository;
+    private UserInfoRepository userInfoRepository;
 
     @Autowired
     private ReferralRepository referralRepository;
@@ -23,30 +23,30 @@ public class ReferralService {
     private static final int MAX_LEVEL = 3;
 
     public void recordReferral(Long referrerId, Long referredUserId) {
-        User referrer = userRepository.findById(referrerId)
+        UserInfo referrer = userInfoRepository.findById(referrerId)
                 .orElseThrow(() -> new IllegalArgumentException("Referrer not found"));
 
-        User referredUser = userRepository.findById(referredUserId)
+        UserInfo referredUserInfo = userInfoRepository.findById(referredUserId)
                 .orElseThrow(() -> new IllegalArgumentException("Referred user not found"));
 
         Referral referral = new Referral();
         referral.setReferrer(referrer);
-        referral.setReferred(referredUser);
+        referral.setReferred(referredUserInfo);
         referral.setLevel(calculateLevel(referrer));
 
         referralRepository.save(referral);
 
-        referredUser.setReferrer(referrer);
+        referredUserInfo.setReferrer(referrer);
 
-        userRepository.save(referredUser);
+        userInfoRepository.save(referredUserInfo);
 
         // Update commission amount for the referrer
 //        commissionService.updateCommission(referrer, referral);
     }
 
-    private int calculateLevel(User referrer) {
+    private int calculateLevel(UserInfo referrer) {
         int level = INITIAL_LEVEL;
-        User currentReferrer = referrer;
+        UserInfo currentReferrer = referrer;
 
         while (currentReferrer.getReferrer() != null && level < MAX_LEVEL) {
             currentReferrer = currentReferrer.getReferrer();
